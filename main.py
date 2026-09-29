@@ -150,5 +150,20 @@ st.plotly_chart(fig_bubble, width="stretch")
 st.text_input("이 그래프로 알 수 있는 것", key="note6")
 
 st.divider()
+
+# ── 그래프 7. 제작 국가 → 장르 선버스트 (칸 크기 = 영화 편수) ──
+st.header("7. 제작 국가별 장르 구성 (선버스트)")
+
+fig_sunburst = px.sunburst(
+    df,
+    path=["nation", "장르"],  # 칸 크기는 지정하지 않으면 영화 편수(행 개수)로 계산됩니다
+)
+fig_sunburst.update_traces(hovertemplate="%{label}<br>편수: %{value}편<extra></extra>")
+st.plotly_chart(fig_sunburst, width="stretch")
+
+# '이 그래프로 알 수 있는 것' 한 문장을 적는 자리
+st.text_input("이 그래프로 알 수 있는 것", key="note7")
+
+st.divider()
 # 앞으로 그래프를 계속 추가할 구역
-st.header("7. (다음 그래프를 여기에 추가)")
+st.header("8. (다음 그래프를 여기에 추가)")
