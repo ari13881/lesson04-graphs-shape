@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
 st.set_page_config(page_title="영화 데이터 그래프 도감 2 - 분포와 관계", layout="wide")
@@ -55,5 +56,36 @@ st.plotly_chart(fig_tree, width="stretch")
 st.text_input("이 그래프로 알 수 있는 것", key="note2")
 
 st.divider()
+
+# ── 그래프 3. 총 관객수 히스토그램 ──
+st.header("3. 총 관객수 분포 (히스토그램)")
+
+fig_hist = px.histogram(
+    df,
+    x="total_audi",
+    nbins=20,
+    labels={"total_audi": "총 관객수"},
+)
+fig_hist.update_layout(yaxis_title="영화 편수")
+st.plotly_chart(fig_hist, width="stretch")
+
+# 어느 구간에 영화가 가장 많이 몰려 있는지 계산합니다
+counts, bin_edges = np.histogram(df["total_audi"].dropna(), bins=20)
+peak_idx = counts.argmax()
+peak_low, peak_high = bin_edges[peak_idx], bin_edges[peak_idx + 1]
+
+# 총 관객수가 가장 많은 영화를 찾습니다
+top_movie = df.loc[df["total_audi"].idxmax()]
+
+st.markdown(
+    f"대부분의 영화는 총 관객 **{peak_low:,.0f}명 ~ {peak_high:,.0f}명** 구간에 몰려 있고, "
+    f"가장 관객이 많은 영화는 **{top_movie['movieNm']}**"
+    f"(총 {top_movie['total_audi']:,.0f}명)입니다."
+)
+
+# '이 그래프로 알 수 있는 것' 한 문장을 적는 자리
+st.text_input("이 그래프로 알 수 있는 것", key="note3")
+
+st.divider()
 # 앞으로 그래프를 계속 추가할 구역
-st.header("3. (다음 그래프를 여기에 추가)")
+st.header("4. (다음 그래프를 여기에 추가)")
