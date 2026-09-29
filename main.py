@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="영화 데이터 그래프 도감 2 - 분포와 관계", layout="wide")
 st.title("영화 데이터 그래프 도감 2 - 분포와 관계")
@@ -15,6 +16,19 @@ def load_data():
     df = pd.read_csv(DATA_URL)
     # 장르가 세로막대 기호(|)로 여러 개 적힌 영화는 첫 번째 장르만 씁니다
     df["장르"] = df["genre"].str.split("|").str[0]
+    # openDt(여덟 자리 숫자, 예: 20250101)에서 계절을 뽑아냅니다
+    open_month = pd.to_datetime(df["openDt"].astype(str), format="%Y%m%d").dt.month
+
+    def month_to_season(month):
+        if month in (3, 4, 5):
+            return "봄"
+        if month in (6, 7, 8):
+            return "여름"
+        if month in (9, 10, 11):
+            return "가을"
+        return "겨울"
+
+    df["계절"] = open_month.apply(month_to_season)
     return df
 
 
@@ -165,5 +179,58 @@ st.plotly_chart(fig_sunburst, width="stretch")
 st.text_input("이 그래프로 알 수 있는 것", key="note7")
 
 st.divider()
+
+# ── 그래프 8. 계절 → 장르 선버스트 (안쪽 원: 계절, 바깥 원: 장르) ──
+st.header("8. 개봉일의 계절에 따른 영화 장르는 주로 어떠한가")
+
+season_order = ["봄", "여름", "가을", "겨울"]
+
+# 계절 x 장르로 묶어서 편수와 해당 영화명 목록을 만듭니다
+grouped = (
+    df.groupby(["계절", "장르"])["movieNm"]
+    .apply(list)
+    .reset_index()
+)
+grouped["편수"] = grouped["movieNm"].apply(len)
+grouped["영화_목록"] = grouped["movieNm"].apply(lambda lst: ", ".join(lst))
+
+ids, labels, parents, values, hover_text = [], [], [], [], []
+
+# 안쪽 원: 계절
+for season in season_order:
+    season_rows = grouped[grouped["계절"] == season]
+    if season_rows.empty:
+        continue
+    ids.append(season)
+    labels.append(season)
+    parents.append("")
+    values.append(season_rows["편수"].sum())
+    hover_text.append(f"{season}: 총 {season_rows['편수'].sum()}편")
+
+# 바깥 원: 장르 (점에 마우스를 올리면 그 안에 든 영화명이 보이게 합니다)
+for _, row in grouped.iterrows():
+    ids.append(f"{row['계절']}-{row['장르']}")
+    labels.append(row["장르"])
+    parents.append(row["계절"])
+    values.append(row["편수"])
+    hover_text.append(row["영화_목록"])
+
+fig_sunburst2 = go.Figure(
+    go.Sunburst(
+        ids=ids,
+        labels=labels,
+        parents=parents,
+        values=values,
+        customdata=hover_text,
+        branchvalues="total",
+        hovertemplate="%{label}<br>%{customdata}<extra></extra>",
+    )
+)
+st.plotly_chart(fig_sunburst2, width="stretch")
+
+# '이 그래프로 알 수 있는 것' 한 문장을 적는 자리
+st.text_input("이 그래프로 알 수 있는 것", key="note8")
+
+st.divider()
 # 앞으로 그래프를 계속 추가할 구역
-st.header("8. (다음 그래프를 여기에 추가)")
+st.header("9. (다음 그래프를 여기에 추가)")
