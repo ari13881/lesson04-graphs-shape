@@ -2,86 +2,58 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# ────────────────────────────────────────────────────────────
-# 기본 설정
-# ────────────────────────────────────────────────────────────
-st.set_page_config(
-    page_title="영화 데이터 그래프 도감 2 - 분포와 관계",
-    page_icon="🎬",
-    layout="wide",
-)
+st.set_page_config(page_title="영화 데이터 그래프 도감 2 - 분포와 관계", layout="wide")
+st.title("영화 데이터 그래프 도감 2 - 분포와 관계")
 
 DATA_URL = "https://raw.githubusercontent.com/happykth/data/main/kobis_movies.csv"
 
 
 @st.cache_data
-def load_data(url: str) -> pd.DataFrame:
-    df = pd.read_csv(url)
-
-    # genre 열에 세로막대(|) 기호로 여러 장르가 적힌 경우 첫 번째 장르만 사용
-    if "genre" in df.columns:
-        df["genre"] = df["genre"].astype(str).str.split("|").str[0].str.strip()
-
+def load_data():
+    # 1년간 박스오피스 10위권에 든 영화 216편의 요약표를 불러옵니다
+    df = pd.read_csv(DATA_URL)
+    # 장르가 세로막대 기호(|)로 여러 개 적힌 영화는 첫 번째 장르만 씁니다
+    df["장르"] = df["genre"].str.split("|").str[0]
     return df
 
 
-df = load_data(DATA_URL)
+df = load_data()
 
-# ────────────────────────────────────────────────────────────
-# 제목 & 데이터 소개
-# ────────────────────────────────────────────────────────────
-st.title("🎬 영화 데이터 그래프 도감 2 - 분포와 관계")
+# ── 그래프 1. 장르별 영화 편수 도넛 ──
+st.header("1. 장르별 영화 편수 (도넛)")
+genre_count = df["장르"].value_counts().reset_index()
+genre_count.columns = ["장르", "편수"]
 
-st.markdown(
-    """
-이 앱은 **최근 1년간 박스오피스 10위권에 들었던 영화 216편**의 데이터를 바탕으로,
-장르 · 국가 · 스크린수 · 관객수 등 다양한 지표의 **분포와 관계**를 그래프로 살펴봅니다.
-"""
+fig = px.pie(
+    genre_count,
+    names="장르",
+    values="편수",
+    hole=0.45,  # 가운데 구멍을 뚫어 도넛 모양으로
 )
+# 조각에 마우스를 올리면 편수와 비율이 보이게 합니다
+fig.update_traces(hovertemplate="%{label}<br>%{value}편 (%{percent})<extra></extra>")
+st.plotly_chart(fig, width="stretch")
 
-with st.expander("📄 원본 데이터 미리보기"):
-    st.dataframe(df, use_container_width=True)
+# '이 그래프로 알 수 있는 것' 한 문장을 적는 자리
+st.text_input("이 그래프로 알 수 있는 것", key="note1")
 
 st.divider()
 
-# ────────────────────────────────────────────────────────────
-# 그래프 1. 장르별 영화 편수 (도넛 그래프)
-# ────────────────────────────────────────────────────────────
-st.header("1️⃣ 장르별 영화 편수")
+# ── 그래프 2. 장르 안에 영화가 담긴 트리맵 ──
+st.header("2. 장르별 영화 트리맵 (총 관객수 기준)")
 
-genre_counts = (
-    df["genre"]
-    .value_counts()
-    .reset_index()
+fig_tree = px.treemap(
+    df,
+    path=["장르", "movieNm"],
+    values="total_audi",
 )
-genre_counts.columns = ["genre", "count"]
+# 칸에 마우스를 올리면 영화명과 총 관객수가 보이게 합니다
+fig_tree.update_traces(hovertemplate="%{label}<br>총 관객: %{value:,}명<extra></extra>")
+st.plotly_chart(fig_tree, width="stretch")
 
-fig_donut = px.pie(
-    genre_counts,
-    names="genre",
-    values="count",
-    hole=0.5,
-    title="장르별 영화 편수 분포",
-)
-fig_donut.update_traces(
-    textinfo="label+percent",
-    hovertemplate="%{label}<br>편수: %{value}편<br>비율: %{percent}<extra></extra>",
-)
-fig_donut.update_layout(
-    legend_title_text="장르",
-    margin=dict(t=60, b=20, l=20, r=20),
-)
-
-st.plotly_chart(fig_donut, use_container_width=True)
-
-st.markdown("**🔎 이 그래프로 알 수 있는 것:** ")
-# TODO: 위 문장 뒤에 그래프를 보고 파악한 내용을 한 문장으로 채워 넣으세요.
+# '이 그래프로 알 수 있는 것' 한 문장을 적는 자리
+st.text_input("이 그래프로 알 수 있는 것", key="note2")
 
 st.divider()
-
-# ────────────────────────────────────────────────────────────
-# (이후 그래프가 추가될 자리)
-# 새 그래프를 추가할 때는 위와 같은 형식으로
-#   st.header(...) → 그래프 → "이 그래프로 알 수 있는 것" → st.divider()
-# 순서를 반복해 주세요.
-# ────────────────────────────────────────────────────────────
+# 앞으로 그래프를 계속 추가할 구역
+st.header("3. (다음 그래프를 여기에 추가)")
