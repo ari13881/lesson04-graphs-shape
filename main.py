@@ -127,5 +127,28 @@ st.plotly_chart(fig_box, width="stretch")
 st.text_input("이 그래프로 알 수 있는 것", key="note5")
 
 st.divider()
+
+# ── 그래프 6. 개봉일 스크린수 vs 총 관객수 버블 그래프 (점 크기 = 첫 주 관객) ──
+st.header("6. 개봉일 스크린수와 총 관객수의 관계 (버블 그래프)")
+
+fig_bubble = px.scatter(
+    df,
+    x="first_scrn",
+    y="total_audi",
+    size="first_week_audi",
+    color="장르",
+    hover_name="movieNm",  # 점에 마우스를 올리면 영화명이 보이게 합니다
+    labels={
+        "first_scrn": "개봉일 스크린수",
+        "total_audi": "총 관객수",
+        "first_week_audi": "첫 주 관객수",
+    },
+)
+st.plotly_chart(fig_bubble, width="stretch")
+
+# '이 그래프로 알 수 있는 것' 한 문장을 적는 자리
+st.text_input("이 그래프로 알 수 있는 것", key="note6")
+
+st.divider()
 # 앞으로 그래프를 계속 추가할 구역
-st.header("6. (다음 그래프를 여기에 추가)")
+st.header("7. (다음 그래프를 여기에 추가)")
