@@ -87,5 +87,23 @@ st.markdown(
 st.text_input("이 그래프로 알 수 있는 것", key="note3")
 
 st.divider()
+
+# ── 그래프 4. 개봉일 스크린수 vs 총 관객수 산점도 ──
+st.header("4. 개봉일 스크린수와 총 관객수의 관계 (산점도)")
+
+fig_scatter = px.scatter(
+    df,
+    x="first_scrn",
+    y="total_audi",
+    color="장르",
+    hover_name="movieNm",  # 점에 마우스를 올리면 영화명이 보이게 합니다
+    labels={"first_scrn": "개봉일 스크린수", "total_audi": "총 관객수"},
+)
+st.plotly_chart(fig_scatter, width="stretch")
+
+# '이 그래프로 알 수 있는 것' 한 문장을 적는 자리
+st.text_input("이 그래프로 알 수 있는 것", key="note4")
+
+st.divider()
 # 앞으로 그래프를 계속 추가할 구역
-st.header("4. (다음 그래프를 여기에 추가)")
+st.header("5. (다음 그래프를 여기에 추가)")
